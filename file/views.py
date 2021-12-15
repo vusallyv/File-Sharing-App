@@ -1,7 +1,8 @@
 from django.db.models.query_utils import Q
-from django.http.response import FileResponse, Http404
+from django.http.response import FileResponse, Http404, HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView
+from django.views.generic.base import View
 from django.views.generic.detail import DetailView
 from file.forms import CommentForm
 
@@ -33,21 +34,13 @@ class FileDetailView(DetailView):
             file = File.objects.get(pk=pk)
         except File.DoesNotExist:
             raise Http404("File does not exist")
-        response = FileResponse(open(file.file.path, 'rb'))
-        response['Content-Disposition'] = 'inline; filename="{}"'.format(
-            file.file.name)
-        return response
-        # else:
-        #     form = CommentForm(request.POST)
-        #     if form.is_valid():
-        #         file = self.get_object()
-        #         file.comments.create(
-        #             user=request.user,
-        #             file=file,
-        #             comment=request.data['comment']
-        #         )
-        #         return render(request, 'file_detail.html', context={'file': file, 'form': CommentForm})
-        #     return render(request, 'file_detail.html', context={'file': self.get_object(), 'form': form})
+        if FileAccess.objects.filter(user=request.user, file=file).exists() or file.user == request.user:
+            response = FileResponse(open(file.file.path, 'rb'))
+            response['Content-Disposition'] = 'inline; filename="{}"'.format(
+                file.file.name)
+            return response
+        else:
+            return HttpResponse("You do not have permission to see this file")
 
 
 class FileCommentView(DetailView):
@@ -68,7 +61,7 @@ class FileCommentView(DetailView):
         except File.DoesNotExist:
             raise Http404("File does not exist")
         form = CommentForm(request.POST)
-        if FileAccess.objects.filter(user=request.user, file=file, can_comment=True).exists():
+        if FileAccess.objects.filter(user=request.user, file=file, can_comment=True).exists() or file.user == request.user:
             if form.is_valid():
                 file.comments.create(
                     user=request.user,
@@ -79,3 +72,33 @@ class FileCommentView(DetailView):
             return render(request, 'file_detail.html', context={'file': self.get_object(), 'form': CommentForm})
         else:
             return render(request, 'file_detail.html', context={'file': file, 'form': CommentForm, 'error': 'You do not have permission to comment on this file'})
+
+
+class FileAccessView(View):
+    template_name = 'file_detail.html'
+    model = File
+
+    def get(self, request, pk, status):
+        try:
+            file = File.objects.get(pk=pk)
+        except File.DoesNotExist:
+            raise Http404("File does not exist")
+        if file.user == request.user:
+            if FileAccess.objects.filter(user=request.user, file=file, can_see=True, can_comment=True).exists():
+                return render(request, 'file_detail.html', context={'file': file, 'error': 'You already have access to this file'})
+            else:
+                if status == 'see':
+                    file_access, created = FileAccess.objects.get_or_create(
+                        user=request.user,
+                        file=file,
+                    )
+                    file_access.can_see = True
+                elif status == 'comment':
+                    file_access, created = FileAccess.objects.get_or_create(
+                        user=request.user,
+                        file=file,
+                    )
+                    file_access.can_comment = True
+                return render(request, 'file_detail.html', context={'file': file, 'error': 'You have been granted access to this file'})
+        else:
+            return render(request, 'file_detail.html', context={'file': file, 'error': 'You do not have permission to access this file'})

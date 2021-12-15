@@ -56,6 +56,23 @@
                             {% endifequal %}
                             {% endifequal %}
                             {% endfor %}
+                            
+                            {% ifequal file.user request.user  %} 
+                            
+                            <ul class="navbar-nav">
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown text-dark" href="#" id="navbarDropdownAbout" role="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-universal-access"></i>
+                                        Give Access
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownAbout">
+                                        <li><a class="dropdown-item" href="{% url 'file_access' file.id 'see' %}">See</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'file_access' file.id 'comment' %}">See & Comment</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            {% endifequal %}
                         </div>
                     </div>
                 </div>
