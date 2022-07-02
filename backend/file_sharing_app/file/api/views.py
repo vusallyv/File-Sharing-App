@@ -69,10 +69,9 @@ class FileCommentView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        file = File.objects.get(id=kwargs['id'])
+        file = File.objects.get(id=kwargs['pk'])
         if file.user == request.user or FileAccess.objects.filter(file=file, user=request.user, can_write_comment=True).exists():
-            file.comment = request.data['comment']
-            file.save()
+            FileComment.objects.create(file=file, user=request.user, comment=request.data['comment'])
             return Response(status=200)
         return Response(status=403)
 

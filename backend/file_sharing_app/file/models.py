@@ -24,6 +24,10 @@ class FileAccess(BaseModel):
 
     def __str__(self):
         return self.file.name + ' - ' + self.user.username
+
+    class Meta:
+        verbose_name = 'File Access'
+        verbose_name_plural = 'File Access'
         
 
 class FileComment(BaseModel):

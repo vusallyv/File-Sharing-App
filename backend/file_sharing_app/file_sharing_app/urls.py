@@ -24,5 +24,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('user.api.urls')),
     path('file/', include('file.api.urls')),
+    path('comment/', include('comment.urls')),  # new
     path('docs/', schema_view),
 ]
