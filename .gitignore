@@ -130,3 +130,5 @@ dmypy.json
 
 #
 postgredb/
+pgdb/
+backend/openapi.json
