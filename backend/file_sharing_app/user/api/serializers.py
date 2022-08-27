@@ -14,6 +14,15 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'password')
 
+    def create(self, validated_data):
+        user = User(
+            email=validated_data['email'],
+            username=validated_data['username']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
 
 class TokenObtainPairSerializer(TokenObtainSerializer):
     token_class = RefreshToken
@@ -29,7 +38,7 @@ class TokenObtainPairSerializer(TokenObtainSerializer):
         if api_settings.UPDATE_LAST_LOGIN:
             update_last_login(None, self.user)
         hostname = socket.gethostname()    
-        IPAddr = socket.gethostbyname(hostname)   
-        print('IPAddr: ', IPAddr)
+        ip_address = socket.gethostbyname(hostname)
+        print('ip_address: ', ip_address)
 
         return data

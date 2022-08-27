@@ -12,9 +12,27 @@ services:
       POSTGRES_USER: "user"
       POSTGRES_PASSWORD: "12345"
 
+  postgres1:
+    image: postgres
+    volumes:
+      - ./userdb/:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: "user_data"
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "12345"
+
   redis:
     container_name: redis
     image: redis
     restart: "on-failure"
     ports:
       - 6369:6369
+
+  rabbitmq3:
+    container_name: "rabbitmq"
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672

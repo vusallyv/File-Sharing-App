@@ -2,7 +2,7 @@ from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
+from django.shortcuts import get_object_or_404
 from file.models import File, FileAccess, FileComment
 from user.models import User
 from .serializers import FileSerializer
@@ -11,23 +11,33 @@ from .serializers import FileSerializer
 class FileView(APIView):
     serializer = FileSerializer
     permission_classes = (IsAuthenticated,)
-    
+
     def get(self, request, *args, **kwargs):
-        if 'id' in kwargs and (File.objects.get(id=kwargs['id']).user == request.user or FileAccess.objects.filter(file=kwargs['id'], user=request.user).exists()):
-            file = File.objects.get(id=kwargs['id'])
+        get_object_or_404(File, pk=kwargs["pk"])
+        if "pk" in kwargs and (
+            FileAccess.objects.filter(file=kwargs["pk"], user=request.user).exists()
+            or File.objects.get(pk=kwargs["pk"]).user == request.user
+        ):
+            file = File.objects.get(pk=kwargs["pk"])
             serializer = self.serializer(file)
             return Response(serializer.data)
         files = File.objects.filter(user=request.user)
         serializer = self.serializer(files, many=True)
         return Response(serializer.data)
-    
+
     def post(self, request, *args, **kwargs):
-        file = File.objects.create(user=request.user, name=request.data['name'], file=request.data['file'])
-        serializer = self.serializer(file)
-        return Response(serializer.data)
+        self.serializer = FileSerializer(data=request.data)
+        if self.serializer.is_valid():
+            file = File.objects.create(
+                user=request.user,
+                name=self.serializer.validated_data["name"],
+                description=self.serializer.validated_data["description"],
+            )
+            return Response(self.serializer.data, status=201)
+        return Response(self.serializer.errors, status=400)
 
     def delete(self, request, *args, **kwargs):
-        file = File.objects.get(id=kwargs['id'])
+        file = File.objects.get(id=kwargs["id"])
         if file.user == request.user:
             file.delete()
             return Response(status=204)
@@ -38,29 +48,39 @@ class FileAccessView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        file = File.objects.get(id=kwargs['id'])
-        can_read: bool = request.data['can_read']
-        can_write_comment: bool = request.data['can_write_comment']
-        user = User.objects.get(uuid=request.data['user_uuid'])
-        if file.user == request.user and not FileAccess.objects.filter(file=file, user=user).exists():
-            FileAccess.objects.create(file=file, user=user, can_read=can_read, can_write_comment=can_write_comment)
+        file = File.objects.get(id=kwargs["id"])
+        can_read: bool = request.data["can_read"]
+        can_write_comment: bool = request.data["can_write_comment"]
+        user = User.objects.get(uuid=request.data["user_uuid"])
+        if (
+            file.user == request.user
+            and not FileAccess.objects.filter(file=file, user=user).exists()
+        ):
+            FileAccess.objects.create(
+                file=file,
+                user=user,
+                can_read=can_read,
+                can_write_comment=can_write_comment,
+            )
             return Response(status=200)
         return Response(status=403)
 
     def delete(self, request, *args, **kwargs):
-        file = File.objects.get(id=kwargs['id'])
+        file = File.objects.get(id=kwargs["id"])
         if file.user == request.user:
             FileAccess.objects.filter(file=file, user=request.user).delete()
             return Response(status=204)
         return Response(status=403)
 
     def put(self, request, *args, **kwargs):
-        file = File.objects.get(id=kwargs['id'])
-        can_read: bool = request.data['can_read']
-        can_write_comment: bool = request.data['can_write_comment']
-        user = User.objects.get(uuid=request.data['user_uuid'])
+        file = File.objects.get(id=kwargs["id"])
+        can_read: bool = request.data["can_read"]
+        can_write_comment: bool = request.data["can_write_comment"]
+        user = User.objects.get(uuid=request.data["user_uuid"])
         if file.user == request.user:
-            FileAccess.objects.filter(file=file, user=user).update(can_read=can_read, can_write_comment=can_write_comment)
+            FileAccess.objects.filter(file=file, user=user).update(
+                can_read=can_read, can_write_comment=can_write_comment
+            )
             return Response(status=200)
         return Response(status=403)
 
@@ -69,17 +89,29 @@ class FileCommentView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        file = File.objects.get(id=kwargs['pk'])
-        if file.user == request.user or FileAccess.objects.filter(file=file, user=request.user, can_write_comment=True).exists():
-            FileComment.objects.create(file=file, user=request.user, comment=request.data['comment'])
+        file = File.objects.get(id=kwargs["pk"])
+        if (
+            file.user == request.user
+            or FileAccess.objects.filter(
+                file=file, user=request.user, can_write_comment=True
+            ).exists()
+        ):
+            FileComment.objects.create(
+                file=file, user=request.user, comment=request.data["comment"]
+            )
             return Response(status=200)
         return Response(status=403)
 
     def get(self, request, *args, **kwargs):
-        file = File.objects.get(id=kwargs['id'])
-        if file.user == request.user or FileAccess.objects.filter(file=file, user=request.user, can_read=True).exists():
-            if 'comment_id' in kwargs:
-                comment = FileComment.objects.get(id=kwargs['comment_id'])
+        file = File.objects.get(id=kwargs["id"])
+        if (
+            file.user == request.user
+            or FileAccess.objects.filter(
+                file=file, user=request.user, can_read=True
+            ).exists()
+        ):
+            if "comment_id" in kwargs:
+                comment = FileComment.objects.get(id=kwargs["comment_id"])
                 serializer = self.serializer(comment)
                 return Response(serializer.data)
             comments = FileComment.objects.filter(file=file)
@@ -88,10 +120,10 @@ class FileCommentView(APIView):
         return Response(status=403)
 
     def put(self, request, *args, **kwargs):
-        file = File.objects.get(id=kwargs['id'])
-        comment = FileComment.objects.get(id=kwargs['comment_id'])
+        file = File.objects.get(id=kwargs["id"])
+        comment = FileComment.objects.get(id=kwargs["comment_id"])
         if comment.user == request.user:
-            comment.comment = request.data['comment']
+            comment.comment = request.data["comment"]
             comment.edited_by = request.user
             comment.edited_at = datetime.now()
             comment.save()
@@ -99,8 +131,8 @@ class FileCommentView(APIView):
         return Response(status=403)
 
     def delete(self, request, *args, **kwargs):
-        file = File.objects.get(id=kwargs['id'])
-        comment = FileComment.objects.get(id=kwargs['comment_id'])
+        file = File.objects.get(id=kwargs["id"])
+        comment = FileComment.objects.get(id=kwargs["comment_id"])
         if file.user == request.user or comment.user == request.user:
             comment.deleted_at = datetime.now()
             comment.deleted_by = request.user
