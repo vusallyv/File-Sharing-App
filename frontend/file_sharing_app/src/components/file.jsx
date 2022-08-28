@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { filesUrl } from '../settings'
 import '../css/style.css';
-import { Link } from 'react-router-dom';
 
-function FilesComponent() {
-    const [files, setFiles] = useState([]);
+
+function FileComponent(props) {
+    const [file, setFile] = useState({});
 
     useEffect(() => {
         fetchFile();
     }, []);
 
     const fetchFile = () => {
-        fetch(filesUrl, {
+        fetch(filesUrl + props.id, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -25,7 +25,7 @@ function FilesComponent() {
                 }
                 return response.json();
             }).then(data => {
-                setFiles(data);
+                setFile(data);
             }).catch(err => {
                 throw new Error(err);
             }
@@ -33,17 +33,15 @@ function FilesComponent() {
     }
     return (
         <div>
-            <h3>Files</h3>
+            <h3>File</h3>
             <ul>
-                {files.map(file => (
-                    <li key={file.id}>
-                        <Link to={'/files/' + file.id}>{file.name}</Link>
-                    </li>
-                ))}
+                <li>
+                    This is the file {file.name}
+                </li>
             </ul>
         </div>
     );
 }
 
 
-export default FilesComponent;
+export default FileComponent;

@@ -14,6 +14,16 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'password')
 
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError('Password must be at least 8 characters long')
+        elif value.isdigit():
+            raise serializers.ValidationError('Password must contain at least one letter')
+        elif value.isalpha():
+            raise serializers.ValidationError('Password must contain at least one number')
+        return value
+
+
     def create(self, validated_data):
         user = User(
             email=validated_data['email'],
@@ -42,3 +52,9 @@ class TokenObtainPairSerializer(TokenObtainSerializer):
         print('ip_address: ', ip_address)
 
         return data
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email')

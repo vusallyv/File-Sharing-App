@@ -1,14 +1,14 @@
 from file.tasks import create_user_info
 
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.authentication import AUTH_HEADER_TYPES
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
-from .serializers import RegisterUserSerializer
+from .serializers import RegisterUserSerializer, UserSerializer
 
 from django.utils.module_loading import import_string
 from django.contrib.auth import get_user_model
@@ -24,12 +24,10 @@ class RegisterUser(APIView):
     def post(self, request):
         data = request.data
         serializer = self.serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomTokenViewBase(generics.GenericAPIView):
@@ -80,3 +78,11 @@ class TokenObtainPairView(CustomTokenViewBase):
     """
 
     _serializer_class = api_settings.TOKEN_OBTAIN_SERIALIZER
+
+
+class UserListView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return User.objects.exclude(uuid=self.request.user.uuid)

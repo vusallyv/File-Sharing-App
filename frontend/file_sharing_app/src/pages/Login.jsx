@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { loginUrl } from '../settings';
+import { Link } from 'react-router-dom';
 
 
 class Login extends Component {
@@ -30,7 +31,7 @@ class Login extends Component {
                     success: false,
                     error: false,
                 });
-                if (!response.ok && response.status === 400) {
+                if (!response.ok) {
                     this.setState({
                         error: true,
                         errorMessage: 'Invalid username or password'
@@ -40,12 +41,13 @@ class Login extends Component {
                 return response.json();
             })
             .then(data => {
+                console.log(data);
                 this.setState({
                     success: true,
                     successMessage: 'You are logged in successfully'
                 });
-                console.log('You are logged in successfully', data);
                 localStorage.setItem('access_token', data.access);
+                window.location.href = '/';
             }).catch(err => {
                 throw new Error(err);
             }
@@ -115,7 +117,7 @@ class Login extends Component {
                         {/* Register */}
                         <p>
                             Not a member?
-                            <a href="/register">Register</a>
+                            <Link to="/register">Register</Link>
                         </p>
                         {/* Social login */}
                         <p>or sign in with:</p>

@@ -5,9 +5,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 
 class Register extends Component {
-    state = {
-        registerUrl: registerUrl,
-    }
+    state = {}
 
     handleOnChange = (e) => {
         this.setState({
@@ -16,7 +14,6 @@ class Register extends Component {
     }
 
     signUp = (e) => {
-        console.log(this);
         e.preventDefault();
         const data = {
             username: this.state.username,
@@ -25,7 +22,7 @@ class Register extends Component {
             // passwordConfirmation: this.state.passwordConfirmation,
             // phone_number: this.state.phone_number,
         }
-        fetch('http://localhost:8000/user/register/', {
+        fetch(registerUrl, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -34,15 +31,26 @@ class Register extends Component {
             body: JSON.stringify(data),
         })
 
-            .then(res => res.json())
+            .then((response) => {
+                this.setState({
+                    success: false,
+                    error: false,
+                });
+                if (!response.ok) {
+                    this.setState({
+                        error: true,
+                        errorMessage: 'Something went wrong',
+                    });
+                    throw new Error('Network response was not ok.');
+                }
+                return response.json();
+            })
             .then(data => {
-                console.log(data);
-                // if (data.status) {
-                //     alert('You are registered');
-                //     // this.props.history.push('/login');
-                // } else {
-                //     alert(data.message);
-                // }
+                this.setState({
+                    success: true,
+                    successMessage: 'You are registered successfully'
+                });
+                window.location.href = '/';
             }).catch(err => {
                 console.log(err);
             }
@@ -52,6 +60,23 @@ class Register extends Component {
     render() {
         return (<>
             {/* Default form register */}
+            {this.state.error ?
+                <React.Fragment>
+                    <div className="alert alert-danger" role="alert">
+                        {this.state.errorMessage}
+                    </div>
+                </React.Fragment>
+                :
+                null}
+            {this.state.success ?
+
+                <React.Fragment>
+                    <div className="alert alert-success" role="alert">
+                        {this.state.successMessage}
+                    </div>
+                </React.Fragment>
+                :
+                null}
             <form className="text-center border border-light p-5" action="#!">
                 <p className="h4 mb-4">Sign up</p>
                 {/* Username */}
@@ -62,28 +87,6 @@ class Register extends Component {
                     className="form-control mb-4"
                     placeholder="Username"
                 />
-                <div className="form-row mb-4">
-                    <div className="col">
-                        {/* First name */}
-                        <input
-                            onChange={this.handleOnChange}
-                            type="text"
-                            id="first_name"
-                            className="form-control"
-                            placeholder="First name"
-                        />
-                    </div>
-                    <div className="col">
-                        {/* Last name */}
-                        <input
-                            onChange={this.handleOnChange}
-                            type="text"
-                            id="last_name"
-                            className="form-control"
-                            placeholder="Last name"
-                        />
-                    </div>
-                </div>
                 {/* E-mail */}
                 <input
                     onChange={this.handleOnChange}
@@ -132,7 +135,7 @@ class Register extends Component {
                 Optional - for two step authentication
               </small> */}
                 {/* Newsletter */}
-                <div className="custom-control custom-checkbox">
+                {/* <div className="custom-control custom-checkbox">
                     <input
                         onChange={this.handleOnChange}
                         type="checkbox"
@@ -145,7 +148,8 @@ class Register extends Component {
                     >
                         Subscribe to our newsletter
                     </label>
-                </div>
+                </div> */}
+                <br />
                 {/* Sign up button */}
                 <button onClick={this.signUp} className="btn btn-info my-4 btn-block" type="submit">
                     Sign in
@@ -164,15 +168,6 @@ class Register extends Component {
               <a href="#" className="mx-2" role="button">
                 <i className="fab fa-github light-blue-text" />
               </a> */}
-                <hr />
-                {/* Terms of service */}
-                <p>
-                    By clicking
-                    <em>Sign up</em> you agree to our
-                    <a href="" target="_blank">
-                        terms of service
-                    </a>
-                </p>
             </form>
             {/* Default form register */}
         </>

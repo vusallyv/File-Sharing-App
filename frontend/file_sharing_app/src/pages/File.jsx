@@ -1,20 +1,19 @@
 import React from "react";
-import { withRouter } from "react-router";
+import { useParams } from "react-router-dom";
+import FileComponent from "../components/file";
+import FileAccessTable from "../components/file-access-table";
+import FileGiveAccess from "../components/file-give-access";
 
-class File extends React.Component {
-    componentDidMount() {
-        console.log(this.props);
-        const id = this.props.match.params.id;
-        this.fetchData(id);
-    }
+const Files = () => {
+    const { id } = useParams();
+    return (
+        <React.Fragment>
+            <FileComponent id={id} />
+            <FileAccessTable id={id} />
+            <FileGiveAccess id={id} />
+        </React.Fragment>
+    );
 
-    fetchData = id => {
-        // ...
-    };
+};
 
-    render() {
-        return <div>Yo</div>;
-    }
-}
-
-export default File;
+export default Files;
