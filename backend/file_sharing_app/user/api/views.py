@@ -3,11 +3,12 @@ from file.tasks import create_user_info
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import generics, status
+from rest_framework import generics, status, serializers
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.authentication import AUTH_HEADER_TYPES
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from .serializers import RegisterUserSerializer, UserSerializer
 
 from django.utils.module_loading import import_string
@@ -22,12 +23,17 @@ class RegisterUser(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        data = request.data
-        serializer = self.serializer(data=data)
+        serializer = self.serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                status=status.HTTP_201_CREATED,
+                data={"success": True, "message": "User created successfully"},
+            )
+        return Response(
+            status=status.HTTP_400_BAD_REQUEST,
+            data={"success": False, "message": serializer.errors},
+        )
 
 
 class CustomTokenViewBase(generics.GenericAPIView):
@@ -65,7 +71,7 @@ class CustomTokenViewBase(generics.GenericAPIView):
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
-        
+
         create_user_info.delay()
 
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
@@ -78,6 +84,30 @@ class TokenObtainPairView(CustomTokenViewBase):
     """
 
     _serializer_class = api_settings.TOKEN_OBTAIN_SERIALIZER
+
+
+class CustomAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        print("request.data: ", request.data)
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+        if serializer.is_valid():
+            user = serializer.validated_data["user"]
+            token, created = Token.objects.get_or_create(user=user)
+            return Response(
+                {
+                    "access_token": token.key,
+                    "success": True,
+                    "message": "User authenticated successfully",
+                },
+                status=status.HTTP_200_OK,
+            )
+        print("serializer.is_not_valid(): ", serializer.is_valid())
+        return Response(
+            status=status.HTTP_400_BAD_REQUEST,
+            data={"success": False, "message": "User authentication failed"},
+        )
 
 
 class UserListView(generics.ListAPIView):

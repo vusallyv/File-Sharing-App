@@ -36,38 +36,45 @@ class Register extends Component {
                     success: false,
                     error: false,
                 });
-                if (!response.ok) {
-                    this.setState({
-                        error: true,
-                        errorMessage: 'Something went wrong',
-                    });
-                    throw new Error('Network response was not ok.');
-                }
                 return response.json();
             })
             .then(data => {
-                this.setState({
-                    success: true,
-                    successMessage: 'You are registered successfully'
-                });
-                window.location.href = '/';
+                if (data.success) {
+                    this.setState({
+                        success: data.success,
+                        successMessage: data.message,
+                    });
+                    window.location.href = '/';
+                } else {
+                    console.log(data.message);
+                    this.setState({
+                        success: data.success,
+                        successMessage: data.message,
+                    });
+                }
             }).catch(err => {
                 console.log(err);
             }
             );
     }
 
+    handleError = (field) => {
+        if (!this.state.status && this.state.successMessage && Object.keys(this.state.successMessage)) {
+            return (
+                <React.Fragment>
+                    <span>
+                        <small className="text-danger">{this.state.successMessage[field]}</small>
+                    </span>
+                </React.Fragment>
+            );
+        } else {
+            return null;
+        }
+    }
+
     render() {
         return (<>
             {/* Default form register */}
-            {this.state.error ?
-                <React.Fragment>
-                    <div className="alert alert-danger" role="alert">
-                        {this.state.errorMessage}
-                    </div>
-                </React.Fragment>
-                :
-                null}
             {this.state.success ?
 
                 <React.Fragment>
@@ -80,6 +87,7 @@ class Register extends Component {
             <form className="text-center border border-light p-5" action="#!">
                 <p className="h4 mb-4">Sign up</p>
                 {/* Username */}
+                {this.handleError('username')}
                 <input
                     onChange={this.handleOnChange}
                     type="text"
@@ -88,6 +96,7 @@ class Register extends Component {
                     placeholder="Username"
                 />
                 {/* E-mail */}
+                {this.handleError('email')}
                 <input
                     onChange={this.handleOnChange}
                     type="email"
@@ -96,6 +105,7 @@ class Register extends Component {
                     placeholder="E-mail"
                 />
                 {/* Password */}
+                {this.handleError('password')}
                 <input
                     onChange={this.handleOnChange}
                     type="password"

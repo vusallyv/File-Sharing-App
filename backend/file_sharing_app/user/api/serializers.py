@@ -23,8 +23,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Password must contain at least one number')
         return value
 
-
     def create(self, validated_data):
+        print(validated_data)
         user = User(
             email=validated_data['email'],
             username=validated_data['username']

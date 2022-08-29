@@ -82,8 +82,12 @@ class FileAccessView(APIView):
                 can_read=can_read,
                 can_write_comment=can_write_comment,
             )
-            return Response(status=201, data={"user": user.username})
-        return Response(status=400)
+            return Response(status=201, data={'success': True, 'message': 'File access created'})
+        elif user == request.user:
+            return Response(status=403, data={'success': False, 'message': 'You can not add yourself'})
+        elif FileAccess.objects.filter(file=file, user=user).exists():
+            return Response(status=403, data={'success': False, 'message': 'File access already exists'})
+        return Response(status=400, data={'success': False})
 
     def delete(self, request, *args, **kwargs):
         file = get_object_or_404(File, pk=kwargs["pk"])

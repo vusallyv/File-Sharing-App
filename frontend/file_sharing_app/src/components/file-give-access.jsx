@@ -33,15 +33,13 @@ class FileGiveAccess extends Component {
             );
     }
     handleSubmit = (event) => {
-        console.log(this.props);
         event.preventDefault();
         const formData = new FormData(event.target);
         const data = {
             user: formData.get('user'),
             can_read: true,
-            can_write_comment: formData.get('can_write_comment') == 'on' ? true : false,
+            can_write_comment: formData.get('can_write_comment') === 'on' ? true : false,
         };
-        console.log(data);
         fetch(filesUrl + this.props.id + '/access/', {
             method: 'POST',
             headers: {
@@ -52,12 +50,15 @@ class FileGiveAccess extends Component {
             body: JSON.stringify(data),
         })
             .then((response) => {
-                if (!response.ok && response.status === 400) {
-                    throw new Error('Bad request');
-                }
                 return response.json();
             }).then(data => {
-                window.location.reload();
+                this.setState({
+                    success: data.success,
+                    message: data.message,
+                });
+                if (data.success) {
+                    window.location.reload();
+                }
             }).catch(err => {
                 console.log(err);
             }
@@ -68,6 +69,8 @@ class FileGiveAccess extends Component {
             <>
                 <h3>Give Access</h3>
                 <form onSubmit={this.handleSubmit}>
+                    {this.state.success && this.state.message ? <div className="alert alert-success" role="alert">{this.state.message}</div> : null}
+                    {!this.state.success && this.state.message ? <div className="alert alert-danger" role="alert">{this.state.message}</div> : null}
                     <input list="user" name="user" />
                     <datalist id="user">
                         {this.state.users.map(({ username }) => <option key={username} value={username} >{username}</option>)}

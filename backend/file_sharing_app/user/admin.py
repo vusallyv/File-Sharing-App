@@ -43,3 +43,4 @@ class UserInfoAdmin(MultiDBModelAdmin):
 
 admin.site.register(User, UserAdmin)
 admin.site.register(UserInfo, UserInfoAdmin)
+admin.site.site_header = 'File Sharing App'

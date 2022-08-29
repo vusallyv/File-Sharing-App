@@ -5,9 +5,11 @@ class FileAccessTable extends Component {
     state = {
         fileAccesses: [],
     }
+
     componentDidMount() {
         this.fetchFileAccesses();
     }
+
     fetchFileAccesses = () => {
         fetch(filesUrl + this.props.id + '/access/', {
             method: 'GET',
@@ -44,7 +46,7 @@ class FileAccessTable extends Component {
             .then((response) => {
                 if (!response.ok && response.status === 400) {
                     throw new Error('Bad request');
-                } 
+                }
                 return response.json();
             }).then(data => {
                 window.location.reload();
