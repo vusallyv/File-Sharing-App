@@ -1,11 +1,12 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import FileComponent from "../components/file";
-import FileAccessTable from "../components/file-access-table";
-import FileGiveAccess from "../components/file-give-access";
+import FileComponent from "../components/files/singleFile";
+import FileAccessTable from "../components/files/file-access-table";
+import FileGiveAccess from "../components/files/file-give-access";
 
-const Files = () => {
+const File = () => {
     const { id } = useParams();
+
     return (
         <React.Fragment>
             <FileComponent id={id} />
@@ -16,4 +17,4 @@ const Files = () => {
 
 };
 
-export default Files;
+export default File;

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { loginUrl } from '../settings';
+import { loginUrl } from '../../settings';
 import { Link } from 'react-router-dom';
 
 
@@ -31,40 +31,27 @@ class Login extends Component {
                     success: false,
                     error: false,
                 });
+                if (!response.ok) {
+                    this.setState({
+                        error: true,
+                        errorMessage: 'Invalid username or password'
+                    });
+                    throw new Error('Invalid username or password');
+                }
                 return response.json();
             })
             .then(data => {
-                if (data.success) {
-                    this.setState({
-                        success: data.success,
-                        successMessage: data.message,
-                    });
-                    localStorage.setItem('access_token', data.access);
-                    window.location.href = '/';
-                } else {
-                    this.setState({
-                        success: data.success,
-                        successMessage: data.message,
-                    });
-                }
+                console.log(data);
+                this.setState({
+                    success: true,
+                    successMessage: 'You are logged in successfully'
+                });
+                localStorage.setItem('access_token', data.access);
+                window.location.href = '/';
             }).catch(err => {
                 throw new Error(err);
             }
             );
-    }
-
-    handleError = (field) => {
-        if (!this.state.status && this.state.successMessage && Object.keys(this.state.successMessage)) {
-            return (
-                <React.Fragment>
-                    <span>
-                        <small className="text-danger">{this.state.successMessage[field]}</small>
-                    </span>
-                </React.Fragment>
-            );
-        } else {
-            return null;
-        }
     }
 
     render() {
@@ -72,19 +59,20 @@ class Login extends Component {
         return (
             <React.Fragment>
                 <>
-                    {!this.state.success && this.state.successMessage ?
-                        <React.Fragment>
-                            <div className="alert alert-danger text-center" role="alert">
-                                {this.state.successMessage}
-                            </div>
-                        </React.Fragment>
-                        :
-                        null}
                     {/* Default form login */}
                     <form className="text-center border border-light p-5" action="#!">
                         <p className="h4 mb-4">Sign in</p>
+                        {error &&
+                            <h2>
+                                {this.state.errorMessage}
+                            </h2>
+                        }
+                        {success &&
+                            <h2>
+                                {this.state.successMessage}
+                            </h2>
+                        }
                         {/* Username */}
-                        {this.handleError('username')}
                         <input
                             type="text"
                             id="username"
@@ -93,7 +81,6 @@ class Login extends Component {
                             onChange={this.handleOnChange}
                         />
                         {/* Password */}
-                        {this.handleError('password')}
                         <input
                             type="password"
                             id="password"
@@ -120,7 +107,7 @@ class Login extends Component {
                             </div>
                             <div>
                                 {/* Forgot password */}
-                                <a href="">Forgot password?</a>
+                                <a href="/">Forgot password?</a>
                             </div>
                         </div>
                         {/* Sign in button */}
@@ -132,20 +119,6 @@ class Login extends Component {
                             Not a member?
                             <Link to="/register">Register</Link>
                         </p>
-                        {/* Social login */}
-                        <p>or sign in with:</p>
-                        <a href="#" className="mx-2" role="button">
-                            <i className="fab fa-facebook-f light-blue-text" />
-                        </a>
-                        <a href="#" className="mx-2" role="button">
-                            <i className="fab fa-twitter light-blue-text" />
-                        </a>
-                        <a href="#" className="mx-2" role="button">
-                            <i className="fab fa-linkedin-in light-blue-text" />
-                        </a>
-                        <a href="#" className="mx-2" role="button">
-                            <i className="fab fa-github light-blue-text" />
-                        </a>
                     </form>
                     {/* Default form login */}
                 </>

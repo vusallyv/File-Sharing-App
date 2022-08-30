@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { filesUrl } from '../settings'
-import '../css/style.css';
+import { filesUrl } from '../../settings'
+import '../../css/style.css';
 import { Link } from 'react-router-dom';
-import Error from "../pages/NoPage";
+import Error from "../../pages/NoPage";
+import Spinners from '../bootstrap-components/spinners';
 
-function FilesComponent() {
+function FileList() {
     const [files, setFiles] = useState([]);
-    const [httpStatusCode, setHttpStatusCode] = React.useState();
 
     useEffect(() => {
         fetchFile();
@@ -25,7 +25,6 @@ function FilesComponent() {
                 if (!response.ok && response.status === 400) {
                     throw new Error('Bad request');
                 }
-                setHttpStatusCode(response.status);
                 return response.json();
             }).then(data => {
                 setFiles(data);
@@ -34,24 +33,26 @@ function FilesComponent() {
             }
             );
     }
-    if (httpStatusCode === 404) {
-        return <Error />
-      }
 
     return (
         <div>
-            <h3>Files</h3>
-            {files.length === 0 && <p>Loading...</p>}
-            <ul>
+            <h3 className='text-center my-3'>Files</h3>
+            <div className='list-group'>
+                {files.length === 0 && <Spinners spinner={'muted'} />}
                 {files.map(file => (
-                    <li key={file.id}>
-                        <Link to={'/files/' + file.id}>{file.name}</Link>
-                    </li>
+                    <Link to={'/files/' + file.id} key={file.id} className="list-group-item list-group-item-action flex-column align-items-start">
+                        <div className="d-flex w-100 justify-content-between">
+                            <h5 className="mb-1">{file.name}</h5>
+                            <small>{file.created_at}</small>
+                        </div>
+                        <p className="mb-1">{file.description}</p>
+                        <small>Created by {file.user.username}</small>
+                    </Link>
                 ))}
-            </ul>
+            </div>
         </div>
     );
 }
 
 
-export default FilesComponent;
+export default FileList;

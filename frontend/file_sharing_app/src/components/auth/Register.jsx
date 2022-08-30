@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { registerUrl } from '../settings';
-import '../css/style.css';
+import { registerUrl } from '../../settings';
+import '../../css/style.css';
 import 'bootstrap/dist/css/bootstrap.css';
 
 

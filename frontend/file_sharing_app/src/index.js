@@ -4,17 +4,17 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
+// import 'bootstrap/dist/css/bootstrap.css';
 import Layout from "./pages/Layout";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Login from "./components/auth/Login";
+import Register from "./components/auth/Register";
 import Error from "./pages/NoPage";
-import Files from "./pages/Files";
-import File from "./pages/File";
+import Files from "./pages/FileList";
+import File from "./pages/SingleFile";
 import CreateFile from "./pages/CreateFile";
 import React from "react";
-import Logout from "./pages/Logout";
-import 'bootstrap/dist/css/bootstrap.css';
+import Logout from "./components/auth/Logout";
 
 
 export default function App() {

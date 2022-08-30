@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { filesUrl } from '../settings';
+import { filesUrl } from '../../settings';
 
 class FileAccessTable extends Component {
     state = {
@@ -49,7 +49,9 @@ class FileAccessTable extends Component {
                 }
                 return response.json();
             }).then(data => {
-                window.location.reload();
+                if (data.success) {
+                    this.fetchFileAccesses();
+                }
             }).catch(err => {
                 console.log(err);
             }

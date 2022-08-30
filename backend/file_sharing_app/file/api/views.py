@@ -96,8 +96,8 @@ class FileAccessView(APIView):
             file=file, id=access_id
         ).exists():
             FileAccess.objects.filter(file=file, pk=access_id).delete()
-            return Response(status=202, data={"access_id": access_id})
-        return Response(status=403)
+            return Response(status=202, data={"success": True, "message": "File access deleted"})
+        return Response(status=403, data={"success": False, "message": "You can not delete this file access"})
 
     def put(self, request, *args, **kwargs):
         file = File.objects.get(id=kwargs["id"])

@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
-import { usersUrl, filesUrl } from '../settings';
+import { usersUrl, filesUrl } from '../../settings';
+import Badges from '../bootstrap-components/badges';
 
 
 class FileGiveAccess extends Component {
     state = {
         users: [],
     }
-    componentDidMount() {
-        this.fetchFileAccesses();
-    }
+
     fetchFileAccesses = () => {
         fetch(usersUrl + 'users/', {
             method: 'GET',
@@ -32,6 +31,7 @@ class FileGiveAccess extends Component {
             }
             );
     }
+
     handleSubmit = (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
@@ -64,6 +64,7 @@ class FileGiveAccess extends Component {
             }
             );
     }
+
     render() {
         return (
             <>
@@ -79,7 +80,7 @@ class FileGiveAccess extends Component {
                     <input type="checkbox" id="can_write_comment" name="can_write_comment" />
                     <label htmlFor="can_write_comment">Can Comment?</label>
                     <br />
-                    <button type="submit">Submit</button>
+                    <Badges badge="primary" text="Submit" type="submit" />
                 </form>
             </>
 
