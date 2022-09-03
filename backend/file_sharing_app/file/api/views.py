@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -31,14 +33,17 @@ class FileView(APIView):
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        file = File.objects.create(
-            user=request.user,
-            file=request.data["file"],
-            name=request.data["file"],
-            description=request.data["file"],
+        serializer = self.serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(
+                status=status.HTTP_201_CREATED,
+                data={"success": True, "message": "File created successfully"},
+            )
+        return Response(
+            status=status.HTTP_400_BAD_REQUEST,
+            data={"success": False, "message": "File not created"},
         )
-        serializer = self.serializer(file)
-        return Response(serializer.data)
 
     def delete(self, request, *args, **kwargs):
         file = File.objects.get(id=kwargs["id"])
@@ -82,22 +87,36 @@ class FileAccessView(APIView):
                 can_read=can_read,
                 can_write_comment=can_write_comment,
             )
-            return Response(status=201, data={'success': True, 'message': 'File access created'})
+            return Response(
+                status=201, data={"success": True, "message": "File access created"}
+            )
         elif user == request.user:
-            return Response(status=403, data={'success': False, 'message': 'You can not add yourself'})
+            return Response(
+                status=403,
+                data={"success": False, "message": "You can not add yourself"},
+            )
         elif FileAccess.objects.filter(file=file, user=user).exists():
-            return Response(status=403, data={'success': False, 'message': 'File access already exists'})
-        return Response(status=400, data={'success': False})
+            return Response(
+                status=403,
+                data={"success": False, "message": "File access already exists"},
+            )
+        return Response(status=400, data={"success": False})
 
     def delete(self, request, *args, **kwargs):
         file = get_object_or_404(File, pk=kwargs["pk"])
         access_id = kwargs["access_id"]
-        if file.user == request.user and FileAccess.objects.filter(
-            file=file, id=access_id
-        ).exists():
+        if (
+            file.user == request.user
+            and FileAccess.objects.filter(file=file, id=access_id).exists()
+        ):
             FileAccess.objects.filter(file=file, pk=access_id).delete()
-            return Response(status=202, data={"success": True, "message": "File access deleted"})
-        return Response(status=403, data={"success": False, "message": "You can not delete this file access"})
+            return Response(
+                status=202, data={"success": True, "message": "File access deleted"}
+            )
+        return Response(
+            status=403,
+            data={"success": False, "message": "You can not delete this file access"},
+        )
 
     def put(self, request, *args, **kwargs):
         file = File.objects.get(id=kwargs["id"])

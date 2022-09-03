@@ -18,12 +18,18 @@ from django.urls import path, include
 
 from rest_framework_swagger.views import get_swagger_view
 
-schema_view = get_swagger_view(title='File Sharing API')
+schema_view = get_swagger_view(title="File Sharing API")
 
-urlpatterns = [    
-    path('admin/', admin.site.urls),
-    path('user/', include('user.api.urls')),
-    path('file/', include('file.api.urls')),
-    path('comment/', include('comment.urls')),  # new
-    path('docs/', schema_view),
+
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("user/", include("user.api.urls")),
+    path("file/", include("file.api.urls")),
+    path("comment/", include("comment.urls")),  # new
+    path("docs/", schema_view),
+    path('sentry-debug/', trigger_error),
 ]
